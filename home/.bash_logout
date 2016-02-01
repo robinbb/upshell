@@ -1,0 +1,1 @@
+.upshell/bash_logout
