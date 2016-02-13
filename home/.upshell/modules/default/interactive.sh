@@ -5,7 +5,7 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 # Set UPSHELL_GNU_LS according to whether we are using GNU ls.
-ls --version 2> /dev/null
+ls --version > /dev/null 2>&1
 export UPSHELL_GNU_LS=$?
 
 # Create the `upsh_color_ls` alias according to UPSHELL_GNU_LS.
@@ -16,8 +16,8 @@ else
 fi
 
 # Set some common aliases if not already set.
-[ alias la &> /dev/null ] || alias la='upsh_color_ls -a'
-[ alias ll &> /dev/null ] || alias ll='upsh_color_ls -la'
+alias la > /dev/null 2>&1 || alias la='upsh_color_ls -a'
+alias ll > /dev/null 2>&1 || alias ll='upsh_color_ls -la'
 
 # Set some useful environment variables if not already set.
 export EDITOR=${EDITOR:-vi}
