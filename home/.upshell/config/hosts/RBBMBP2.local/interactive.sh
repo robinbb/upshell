@@ -1,1 +1,1 @@
-export MANPATH=$MANPATH:/usr/local/share/man
+export MANPATH=/usr/local/share/man:/usr/share/man${MANPATH:+:}"$MANPATH"
