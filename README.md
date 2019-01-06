@@ -11,7 +11,8 @@ Upshell is an APLv2-licensed shell startup script framework.
    cd &&
    git clone --depth 1 https://github.com/robinbb/upshell.git .upshell &&
    cd .upshell &&
-   stow home
+   stow home &&
+   cd - > /dev/null
    ```
 4. Customize by adding scripts to `~/.upshell/config` and linking modules to
    the `~/.upshell/modules` directory.
