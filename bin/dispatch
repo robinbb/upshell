@@ -12,23 +12,17 @@ upshell_source() {
    . "$1"
 }
 
-for dir in "/hosts/$HOSTNAME/$USER" \
-           "/users/$USER/$HOSTNAME" \
-           "/hosts/$HOSTNAME"       \
-           "/users/$USER"           \
-           "" ; do
-   dir="$config_dir$dir"
-   script="$dir"/$phase
-   if [ -r "$script" ] ; then
-      upshell_source "$script"
-   fi
-done
-
-for dir in "$config_dir"/modules/*/ ; do
+for dir in "$config_dir/hosts/$HOSTNAME/$USER" \
+           "$config_dir/users/$USER/$HOSTNAME" \
+           "$config_dir/users/$USER"           \
+           "$config_dir/hosts/$HOSTNAME"       \
+           "$config_dir"                       \
+           "$config_dir"/modules/*
+do
    echo "$dir"
    [ -d "$dir" ] || continue
-   script="$dir"$phase
-   if [ -r $script ] ; then
+   script="$dir"/$phase
+   if [ -r "$script" ] ; then
       upshell_source "$script"
    fi
 done
