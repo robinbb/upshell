@@ -1,1 +1,1 @@
-.upshell/profile
+../sh/profile

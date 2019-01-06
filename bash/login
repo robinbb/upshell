@@ -1,2 +1,2 @@
 # STOP! Do not put anything in this file; with Upshell, Bash will not read
-# it. Bash would only read it if ~/.bash_profile did not exist.
+# it. Bash would only read this file if ~/.bash_profile did not exist.

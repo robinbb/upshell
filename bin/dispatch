@@ -7,6 +7,11 @@
 phase="$UPSHELL_PHASE"
 config_dir=~/.upshell/config
 
+upshell_source() {
+   echo "Sourcing $1"
+   . "$1"
+}
+
 for dir in "/hosts/$HOSTNAME/$USER" \
            "/users/$USER/$HOSTNAME" \
            "/hosts/$HOSTNAME"       \
@@ -15,15 +20,16 @@ for dir in "/hosts/$HOSTNAME/$USER" \
    dir="$config_dir$dir"
    script="$dir"/$phase
    if [ -r "$script" ] ; then
-      . $script
+      upshell_source "$script"
    fi
 done
 
 for dir in "$config_dir"/modules/*/ ; do
-   [ -h "$dir" ] || continue
+   echo "$dir"
+   [ -d "$dir" ] || continue
    script="$dir"$phase
    if [ -r $script ] ; then
-      . $script
+      upshell_source "$script"
    fi
 done
 

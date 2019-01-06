@@ -1,1 +1,1 @@
-.upshell/bash_logout
+../bash/logout

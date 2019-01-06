@@ -1,1 +1,1 @@
-.upshell/bash_profile
+../bash/profile

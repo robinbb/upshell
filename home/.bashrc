@@ -1,1 +1,1 @@
-.upshell/bashrc
+../bash/rc

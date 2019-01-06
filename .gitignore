@@ -1,0 +1,4 @@
+/config/*
+!/config/users/README
+!/config/hosts/README
+!/config/modules/README
