@@ -1,0 +1,15 @@
+# profile - this is part of Upshell
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+export UPSHELL=1
+
+UPSHELL_PHASE=pre-login.sh  . ~/.upshell/bin/dispatch
+UPSHELL_PHASE=login.sh      . ~/.upshell/bin/dispatch
+
+# Source .bashrc only if this is an interactive shell.
+[ "$PS1" ] && [ -r ~/.bashrc ] && . ~/.bashrc
+
+UPSHELL_PHASE=post-login.sh . ~/.upshell/bin/dispatch

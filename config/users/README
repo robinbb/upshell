@@ -1,0 +1,5 @@
+Directories in this directory, `config/users`, contain scripts to be sourced
+by the Upshell framework. Files in directory `config/users/$U123` will only
+be sourced by hosts with $HOSTNAME equal to $U123.
+
+In other words, this directory is for per-user customizations.

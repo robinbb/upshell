@@ -1,0 +1,30 @@
+# .bash_profile - part of Upshell
+#
+#  This Source Code Form is subject to the terms of the Mozilla Public
+#  License, v. 2.0. If a copy of the MPL was not distributed with this
+#  file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+export UPSHELL=1
+upshell_exit_handlers=()
+upshell_invoke_exit_handlers() {
+   local i
+   for i in "${upshell_exit_handlers[@]}" ; do
+      eval $i
+   done
+}
+upshell_on_exit() {
+   upshell_exit_handlers=("$*" "${upshell_exit_handlers[@]}")
+}
+trap upshell_invoke_exit_handlers EXIT
+
+UPSHELL_DIR=~/.upshell
+if [ -d "$UPSHELL_DIR" ] ; then
+    UPSHELL_PHASE=pre-login.bash  . "$UPSHELL_DIR"/bin/dispatch
+    UPSHELL_PHASE=login.bash      . "$UPSHELL_DIR"/bin/dispatch
+    [ -r ~/.profile ] && . ~/.profile
+    UPSHELL_PHASE=post-login.bash . "$UPSHELL_DIR"/bin/dispatch
+else
+   echo "Upshell must be installed in the $UPSHELL_DIR directory." \
+        "Exiting."
+   exit 1
+fi

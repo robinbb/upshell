@@ -1,0 +1,28 @@
+# dispatch - part of Upshell
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+phase="$UPSHELL_PHASE"
+config_dir=~/.upshell/config
+
+upshell_source() {
+   . "$1"
+}
+
+for dir in "$config_dir/hosts/$HOSTNAME/$USER" \
+           "$config_dir/users/$USER/$HOSTNAME" \
+           "$config_dir/users/$USER"           \
+           "$config_dir/hosts/$HOSTNAME"       \
+           "$config_dir"                       \
+           "$config_dir"/modules/*
+do
+   [ -d "$dir" ] || continue
+   script="$dir"/$phase
+   if [ -r "$script" ] ; then
+      upshell_source "$script"
+   fi
+done
+
+unset -v config_dir phase
