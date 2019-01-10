@@ -4,14 +4,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-phase="$UPSHELL_PHASE"
-config_file="$UPSHELL"/config
-
 upshell_source() {
-   echo "Sourcing $1"
    . "$1"
 }
 
+config_file="$UPSHELL"/config
 if [ -e "$config_file" ] ; then
    configs="$( cat "$config_file" )"
 else
@@ -20,17 +17,13 @@ fi
  
 IFS='
 '
-for module in "$configs" ; do
+for module in $configs ; do
    eval dir="$module"
-   echo dir = "$dir"
    [ -d "$dir" ] || continue
-   script="$dir"/"$phase"
-   echo script = "$script"
+   script="$dir"/"$UPSHELL_PHASE"
    if [ -r "$script" ] ; then
-      echo HIT
-      echo "***"
       upshell_source "$script"
    fi
 done
 
-unset -v script dir config_file phase
+unset -v script dir configs config_file
