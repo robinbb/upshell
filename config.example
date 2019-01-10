@@ -1,0 +1,5 @@
+./modules/default
+./modules/xdg
+./modules/grep
+./modules/nix
+$HOME/.upshell/modules/grep

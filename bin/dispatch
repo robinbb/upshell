@@ -5,24 +5,32 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 phase="$UPSHELL_PHASE"
-config_dir=~/.upshell/config
+config_file="$UPSHELL"/config
 
 upshell_source() {
+   echo "Sourcing $1"
    . "$1"
 }
 
-for dir in "$config_dir/hosts/$HOSTNAME/$USER" \
-           "$config_dir/users/$USER/$HOSTNAME" \
-           "$config_dir/users/$USER"           \
-           "$config_dir/hosts/$HOSTNAME"       \
-           "$config_dir"                       \
-           "$config_dir"/modules/*
-do
+if [ -e "$config_file" ] ; then
+   configs="$( cat "$config_file" )"
+else
+   configs="\$UPSHELL/modules/default"
+fi
+ 
+IFS='
+'
+for module in "$configs" ; do
+   eval dir="$module"
+   echo dir = "$dir"
    [ -d "$dir" ] || continue
-   script="$dir"/$phase
+   script="$dir"/"$phase"
+   echo script = "$script"
    if [ -r "$script" ] ; then
+      echo HIT
+      echo "***"
       upshell_source "$script"
    fi
 done
 
-unset -v config_dir phase
+unset -v script dir config_file phase

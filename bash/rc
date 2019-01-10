@@ -4,18 +4,17 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-export UPSHELL=1
-
 [ "$PS1" ] || return
-
-[ "$BASH" ] && UPSHELL_PHASE=pre-interactive.bash . ~/.upshell/bin/dispatch
-UPSHELL_PHASE=pre-interactive.sh . ~/.upshell/bin/dispatch
-[ "$BASH" ] && UPSHELL_PHASE=interactive.bash . ~/.upshell/bin/dispatch
-UPSHELL_PHASE=interactive.sh . ~/.upshell/bin/dispatch
+export UPSHELL="$HOME"/.upshell
+go="$UPSHELL"/bin/dispatch
+UPSHELL_PHASE=pre-interactive.bash . "$go"
+UPSHELL_PHASE=pre-interactive.sh   . "$go"
+UPSHELL_PHASE=interactive.bash     . "$go"
+UPSHELL_PHASE=interactive.sh       . "$go"
 
 if [ -z "$UPSHELL_NO_ETC_BASHRC" ] && [ -r /etc/bashrc ] ; then
    . /etc/bashrc
 fi
 
-UPSHELL_PHASE=post-interactive.sh . ~/.upshell/bin/dispatch
-[ "$BASH" ] && UPSHELL_PHASE=post-interactive.bash . ~/.upshell/bin/dispatch
+UPSHELL_PHASE=post-interactive.sh   . "$go"
+UPSHELL_PHASE=post-interactive.bash . "$go"

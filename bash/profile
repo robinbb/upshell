@@ -4,7 +4,7 @@
 #  License, v. 2.0. If a copy of the MPL was not distributed with this
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-export UPSHELL=1
+export UPSHELL="$HOME"/.upshell
 upshell_exit_handlers=()
 upshell_invoke_exit_handlers() {
    local i
@@ -17,14 +17,13 @@ upshell_on_exit() {
 }
 trap upshell_invoke_exit_handlers EXIT
 
-UPSHELL_DIR=~/.upshell
-if [ -d "$UPSHELL_DIR" ] ; then
-    UPSHELL_PHASE=pre-login.bash  . "$UPSHELL_DIR"/bin/dispatch
-    UPSHELL_PHASE=login.bash      . "$UPSHELL_DIR"/bin/dispatch
-    [ -r ~/.profile ] && . ~/.profile
-    UPSHELL_PHASE=post-login.bash . "$UPSHELL_DIR"/bin/dispatch
+if [ -d "$UPSHELL" ] ; then
+   UPSHELL_PHASE=pre-login.bash  . "$UPSHELL"/bin/dispatch
+   UPSHELL_PHASE=login.bash      . "$UPSHELL"/bin/dispatch
+   [ -r ~/.profile ] && . ~/.profile
+   UPSHELL_PHASE=post-login.bash . "$UPSHELL"/bin/dispatch
 else
-   echo "Upshell must be installed in the $UPSHELL_DIR directory." \
+   echo "Upshell must be installed in the $UPSHELL directory." \
         "Exiting."
    exit 1
 fi

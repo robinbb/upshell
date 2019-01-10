@@ -5,3 +5,5 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 export PS1="\u@\h:\w \\$ "
+
+echo "DONE"

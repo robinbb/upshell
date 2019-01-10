@@ -4,12 +4,13 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-export UPSHELL=1
+export UPSHELL="$HOME"/.upshell
 
-UPSHELL_PHASE=pre-login.sh  . ~/.upshell/bin/dispatch
-UPSHELL_PHASE=login.sh      . ~/.upshell/bin/dispatch
+go="$UPSHELL"/bin/dispatch
+UPSHELL_PHASE=pre-login.sh . "$go"
+UPSHELL_PHASE=login.sh     . "$go"
 
 # Source .bashrc only if this is an interactive shell.
 [ "$PS1" ] && [ -r ~/.bashrc ] && . ~/.bashrc
 
-UPSHELL_PHASE=post-login.sh . ~/.upshell/bin/dispatch
+UPSHELL_PHASE=post-login.sh . "$go"
