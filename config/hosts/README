@@ -1,5 +1,0 @@
-Directories in this directory, `config/hosts`, contain scripts to be sourced
-by the Upshell framework. Files in directory config/hosts/$XYZ will only be
-sourced on hosts with $HOSTNAME equal to $XYZ.
-
-In other words, this directory is for per-host customizations.
