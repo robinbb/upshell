@@ -6,7 +6,9 @@
 
 for dir in /usr/share/man \
            /usr/local/man \
-           /usr/local/share
+           /usr/local/share/man
 do
-   export MANPATH=$dir${MANPATH:+:}"$MANPATH"
+   if [ -d "$dir" ] ; then
+      export MANPATH=$dir${MANPATH:+:}"$MANPATH"
+   fi
 done

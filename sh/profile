@@ -1,14 +1,21 @@
-# profile - this is part of Upshell
+# sh/profile - this is part of Upshell
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-export UPSHELL="$HOME"/.upshell
+if [ "$XDG_CONFIG_HOME" ] && [ -d "$XDG_CONFIG_HOME"/upshell ] ; then
+   UPSHELL="$XDG_CONFIG_HOME"/upshell
+elif [ -d ~/.config/upshell ]; then
+   UPSHELL=~/.config/upshell
+else
+   UPSHELL=~/.upshell
+fi
+export UPSHELL
 
-go="$UPSHELL"/bin/dispatch
+go="$UPSHELL"/upshell
 UPSHELL_PHASE=pre-login.sh . "$go"
-UPSHELL_PHASE=login.sh     . "$go"
+UPSHELL_PHASE=login.sh . "$go"
 
 # Source .bashrc only if this is an interactive shell.
 [ "$PS1" ] && [ -r ~/.bashrc ] && . ~/.bashrc
