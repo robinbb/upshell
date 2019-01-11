@@ -9,12 +9,11 @@
 2. Invoke the following script:
    ```sh
    cd &&
-   git clone --depth 1 https://github.com/robinbb/upshell.git .upshell &&
-   ( cd .upshell && stow home ) &&
+   git clone --depth 1 https://github.com/robinbb/upshell.git .config/upshell &&
+   ( cd .config/upshell && stow --target="$HOME" home ) &&
    cd - > /dev/null
    ```
-3. Customize by adding scripts to `~/.upshell/config` and linking modules to
-   the `~/.upshell/modules` directory. (Needs more documentation.)
+3. Customize by adding lines to `~/.config/upshell/config`.
 
 ## Features
 
