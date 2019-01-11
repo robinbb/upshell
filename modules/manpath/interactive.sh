@@ -10,6 +10,3 @@ for dir in /usr/share/man \
 do
    export MANPATH=$dir${MANPATH:+:}"$MANPATH"
 done
-
-export MANPATH=/usr/local/share/man:/usr/share/man${MANPATH:+:}"$MANPATH"
-export MANPATH=/usr/local/share/man:/usr/share/man${MANPATH:+:}"$MANPATH"
