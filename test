@@ -1,0 +1,22 @@
+#!/bin/sh
+
+set -eu
+
+docker_sh() {
+   # Choose a small docker image with 'git' and a simple POSIX shell.
+   docker run --rm \
+      -v "$PWD":/upshell \
+      alpine \
+      sh -c 'apk add git && sh /upshell/'"$(printf %q "$1")"' sh'
+}
+
+for t in tests/*; do
+   [ -e "$t" ] || break
+   ksh "$t" ksh
+   bash "$t" bash
+   zsh "$t" zsh
+   dash "$t" dash
+   docker_sh "$t"
+done
+
+echo "All shells passed the tests!"

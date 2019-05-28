@@ -1,20 +1,49 @@
 #! /bin/sh
 
 set -e
-set -x
+# set -x
 
 dir="$(dirname "$0")"
+shell_type="$1"
 
 # Check formatting of the file under test.
-shfmt -p -i 3 -ci -sr -d "$dir"/../upshell.inc.sh
+command -v shfmt > /dev/null &&
+   shfmt -p -i 3 -ci -sr -d "$dir"/../upshell.inc.sh
 
 # Check formatting of this file.
-shfmt -p -i 3 -ci -sr -d "$0"
+command -v shfmt > /dev/null &&
+   shfmt -p -i 3 -ci -sr -d "$0"
 
 # Include the file under test.
+export UPSHELL_ERROR_FD=3
 . "$dir"/../upshell.inc.sh
 
 # Unit Tests
+
+# upshell_err, upshell_fail, upshell_assert
+
+[ "$(upshell_err foo 3>&1)" = foo ]
+[ "$(upshell_fail "Foo!" 3>&1)" = "Foo!
+Failure." ]
+upshell_assert 1
+upshell_assert X
+upshell_assert 1 = 1
+upshell_assert X = X
+upshell_assert true
+upshell_assert "$UPSHELL_CACHE_HOME"
+upshell_assert -d .
+upshell_assert ! -f .
+! upshell_assert 3>&1
+! upshell_assert '' 3>&1
+! upshell_assert 0 = 1 3>&1
+! upshell_assert X = Y 3>&1
+[ "$(upshell_assert true = false 3>&1)" = "Assertion failed: true = false
+Failure." ]
+
+# upshell_shell_type
+
+# The correct answer is passed in as an argument to this script.
+[ "$(upshell_shell_type)" = "$shell_type" ]
 
 # upshell_ord
 
@@ -41,10 +70,9 @@ shfmt -p -i 3 -ci -sr -d "$0"
 
 # upshell_hex2ascii
 
-[ "$(upshell_hex2ascii 41)" = 'A' ]
 [ "$(upshell_hex2ascii 30)" = '0' ]
-[ "$(upshell_hex2ascii 0)" = '' ]
 [ "$(upshell_hex2ascii 40)" = '@' ]
+[ "$(upshell_hex2ascii 41)" = 'A' ]
 
 # upshell_split_string
 
@@ -128,13 +156,10 @@ done
 
 # upshell_require
 
-export UPSHELL_ERROR_FD=3
 upshell_require sh
 upshell_require awk
 upshell_require tr
-upshell_require git
-upshell_require shfmt
-! upshell_require exec-not-found-blah
+! upshell_require exec-not-found-blah 3>&1
 [ "$(upshell_require exec-not-found-blah 3>&1)" \
    = "The 'exec-not-found-blah' executable is required, but is not on the PATH.
 Failure." ]
@@ -146,6 +171,8 @@ upshell_clone https://github.com/robinbb/upshell
 hexdir="$(upshell_url2hex https://github.com/robinbb/upshell)"
 [ -e "$UPSHELL_CACHE_HOME"/"$hexdir" ]
 [ "$(upshell_list)" = 'https://github.com/robinbb/upshell' ]
+upshell_delete_cache
+[ "$(upshell_list)" = '' ]
 
 # Clearly indicate completion.
 echo 'Success!'
