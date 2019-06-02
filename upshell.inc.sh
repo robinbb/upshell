@@ -28,25 +28,31 @@ upshell_ord() {
    LC_CTYPE=C printf %d "'$1"
 }
 
-upshell_chr() {
-   [ "$1" -lt 256 ] || return 1
-   printf "\\$(printf %o "$1")"
-}
-
 upshell_ascii2hex() {
    LC_CTYPE=C printf %x "'$1"
 }
 
-upshell_hex2ord() {
+upshell_chr() {
+   [ "$1" -lt 256 ] || return 1
+   printf "\\$(printf '%03o' "$1")"
+}
+
+upshell_hex2dec() {
    awk '
-      BEGIN {
-         hex = tolower(ARGV[1])
-         for(i = 1; i <= length(hex); ++i) {
-            x = index("0123456789abcdef", substr(hex, i, 1))
-            if (!x) print "NaN"
+      function hex2dec(hex_chars) {
+         hex_alphabet = "0123456789abcdef"
+         len = length(hex_chars)
+         for (i = 1; i <= len; i++) {
+            x = index(hex_alphabet, substr(hex_chars, i, 1))
+            if (!x) {
+              return "NaN"
+            }
             ord = (16 * ord) + x - 1
          }
-         print ord
+         return ord
+      }
+      BEGIN {
+         print hex2dec(tolower(ARGV[1]))
       }' "$1"
 }
 
@@ -57,7 +63,7 @@ upshell_hex2ascii() {
    # The following does not work on Busybox's 'xxd':
    # echo "$1" | xxd -r -p
 
-   upshell_chr "$(upshell_hex2ord "$1")"
+   upshell_chr "$(upshell_hex2dec "$1")"
 }
 
 upshell_split_string() {
@@ -76,10 +82,11 @@ upshell_hex2string() {
 }
 
 upshell_string2hex() {
-   upshell_split_string |
-      while IFS= read -r char; do
-         upshell_ascii2hex "$char"
-      done
+   od -An -t xC | tr -d ' \n'
+   #  upshell_split_string |
+   #     while IFS= read -r char; do
+   #        upshell_ascii2hex "$char"
+   #     done
 }
 
 upshell_require() {

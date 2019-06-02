@@ -1,5 +1,5 @@
 #!/bin/sh
-
+set -x
 set -eu
 
 docker_sh() {
@@ -12,6 +12,7 @@ docker_sh() {
 
 for t in tests/*; do
    [ -e "$t" ] || break
+   [ -x "$t" ] || continue
    ksh "$t" ksh
    bash "$t" bash
    zsh "$t" zsh
