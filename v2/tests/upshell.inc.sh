@@ -1,7 +1,6 @@
 #! /bin/sh
 
-set -e
-# set -x
+set -eu
 
 dir="$(dirname "$0")"
 shell_type="$1"
@@ -33,10 +32,10 @@ upshell_assert true
 upshell_assert "$UPSHELL_CACHE_HOME"
 upshell_assert -d .
 upshell_assert ! -f .
-! upshell_assert 3>&1
-! upshell_assert '' 3>&1
-! upshell_assert 0 = 1 3>&1
-! upshell_assert X = Y 3>&1
+! upshell_assert 3> /dev/null
+! upshell_assert '' 3> /dev/null
+! upshell_assert 0 = 1 3> /dev/null
+! upshell_assert X = Y 3> /dev/null
 [ "$(upshell_assert true = false 3>&1)" = "Assertion failed: true = false
 Failure." ]
 
@@ -159,7 +158,7 @@ done
 upshell_require sh
 upshell_require awk
 upshell_require tr
-! upshell_require exec-not-found-blah 3>&1
+! upshell_require exec-not-found-blah 3> /dev/null
 [ "$(upshell_require exec-not-found-blah 3>&1)" \
    = "The 'exec-not-found-blah' executable is required, but is not on the PATH.
 Failure." ]
@@ -174,5 +173,30 @@ hexdir="$(upshell_url2hex https://github.com/robinbb/upshell)"
 upshell_delete_cache
 [ "$(upshell_list)" = '' ]
 
+[ ! -e "$UPSHELL_CONFIG_HOME"/config ]
+[ ! -e "$UPSHELL_CACHE_HOME"/home ]
+upshell_add_upshell_module less
+[ -e "$UPSHELL_CONFIG_HOME"/config ]
+[ -e "$UPSHELL_CACHE_HOME"/home ]
+[ 'upshell-module less' = "$(cat "$UPSHELL_CONFIG_HOME"/config)" ]
+[ -e "$UPSHELL_CONFIG_HOME"/home/.profile ]
+
+# Assert that we are now sourcing the 'less' module from the '.profile'.
+grep "$UPSHELL_CACHE_HOME".\*/less -- "$UPSHELL_CACHE_HOME"/home/.profile
+upshell_delete_cache
+
+[ ! -e "$UPSHELL_CACHE_HOME"/home ]
+upshell_add_upshell_module nix
+[ -e "$UPSHELL_CACHE_HOME"/home ]
+[ -e "$UPSHELL_CONFIG_HOME"/home/.profile ]
+[ -e "$UPSHELL_CONFIG_HOME"/home/.bashrc ]
+[ -e "$UPSHELL_CONFIG_HOME"/home/.bash_profile ]
+[ 'upshell-module nix' = "$(cat "$UPSHELL_CONFIG_HOME"/config)" ]
+
+# Assert that we are now sourcing the 'less' module from the '.profile'.
+grep "$UPSHELL_CACHE_HOME".\*/nix -- "$UPSHELL_CACHE_HOME"/home/.profile
+grep "$UPSHELL_CACHE_HOME".\*/nix -- "$UPSHELL_CACHE_HOME"/home/.bash_profile
+grep "$UPSHELL_CACHE_HOME".\*/nix -- "$UPSHELL_CACHE_HOME"/home/.bashrc
+
 # Clearly indicate completion.
-echo 'Success!'
+echo 'Upshell tests successful!'

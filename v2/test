@@ -1,13 +1,25 @@
 #!/bin/sh
-set -x
+
 set -eu
+
+exit_handler() {
+   EXIT_CODE="$?"
+   if [ "$EXIT_CODE" -eq 0 ]; then
+     echo "All shells passed the tests!"
+   else
+     echo "Testing failed."
+   fi
+   return "$EXIT_CODE"
+} 
+
+trap exit_handler EXIT
 
 docker_sh() {
    # Choose a small docker image with 'git' and a simple POSIX shell.
    docker run --rm \
       -v "$PWD":/upshell \
       alpine \
-      sh -c 'apk add git && sh /upshell/'"$(printf %q "$1")"' sh'
+      sh -c 'apk add git > /dev/null 2>&1 && sh /upshell/'"$(printf %q "$1")"' sh'
 }
 
 for t in tests/*; do
@@ -20,4 +32,3 @@ for t in tests/*; do
    docker_sh "$t"
 done
 
-echo "All shells passed the tests!"

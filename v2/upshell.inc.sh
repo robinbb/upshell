@@ -229,6 +229,24 @@ upshell_load() (
    fi
 )
 
+upshell_add_upshell_module() {
+   return 1
+}
+
+upshell_generate_home() {
+   # Construct ${UPSHELL_CACHE_HOME}/home using the config file
+   # ${UPSHELL_CONFIG_HOME}/config.
+   tmpProfile="${UPSHELL_CACHE_HOME}/dot-profile.tmp"
+   cfg="${UPSHELL_CONFIG_HOME}/config"
+   if [ -e "${cfg}" ]; then
+      rm -f "${tmpProfile}"
+      while read cmd; do
+         : # TODO
+      done < "${cfg}"
+   fi
+   : # TODO
+}
+
 upshell() {
    case "$1" in
       'list')
