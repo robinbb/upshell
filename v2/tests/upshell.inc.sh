@@ -1,5 +1,5 @@
 #! /bin/sh
-
+set -x
 set -eu
 
 dir="$(dirname "$0")"
@@ -173,30 +173,47 @@ hexdir="$(upshell_url2hex https://github.com/robinbb/upshell)"
 upshell_delete_cache
 [ "$(upshell_list)" = '' ]
 
-[ ! -e "$UPSHELL_CONFIG_HOME"/config ]
-[ ! -e "$UPSHELL_CACHE_HOME"/home ]
+if [ -e "$UPSHELL_RC" ]; then
+   if [ ! -e "$UPSHELL_RC".bak ]; then
+      cp "$UPSHELL_RC" "$UPSHELL_RC".bak
+   fi
+   rm "$UPSHELL_RC"
+fi
+
+# upshell_generate_phases
+[ ! -e "$UPSHELL_RC" ]
+[ ! -e "$UPSHELL_GENERATED_HOME" ]
+upshell_generate_phases
+[ ! -e "$UPSHELL_GENERATED_HOME" ]
+[ ! -e "$UPSHELL_RC" ]
+
+# upshell_add_upshell_module
+[ ! -e "$UPSHELL_RC" ]
+[ ! -e "$UPSHELL_GENERATED_HOME" ]
 upshell_add_upshell_module less
-[ -e "$UPSHELL_CONFIG_HOME"/config ]
-[ -e "$UPSHELL_CACHE_HOME"/home ]
-[ 'upshell-module less' = "$(cat "$UPSHELL_CONFIG_HOME"/config)" ]
-[ -e "$UPSHELL_CONFIG_HOME"/home/.profile ]
+[ -e "$UPSHELL_RC" ]
+[ -e "$UPSHELL_GENERATED_HOME" ]
+[ 'upshell-module less' = "$(cat "$UPSHELL_RC")" ]
+[ -e "$UPSHELL_GENERATED_HOME"/.profile ]
 
 # Assert that we are now sourcing the 'less' module from the '.profile'.
-grep "$UPSHELL_CACHE_HOME".\*/less -- "$UPSHELL_CACHE_HOME"/home/.profile
-upshell_delete_cache
+grep less -- "$UPSHELL_GENERATED_HOME"/.profile
 
-[ ! -e "$UPSHELL_CACHE_HOME"/home ]
+rm -fr "$UPSHELL_CACHE_HOME"
+rm -f "$UPSHELL_RC"
+[ ! -e "$UPSHELL_GENERATED_HOME" ]
 upshell_add_upshell_module nix
-[ -e "$UPSHELL_CACHE_HOME"/home ]
-[ -e "$UPSHELL_CONFIG_HOME"/home/.profile ]
-[ -e "$UPSHELL_CONFIG_HOME"/home/.bashrc ]
-[ -e "$UPSHELL_CONFIG_HOME"/home/.bash_profile ]
-[ 'upshell-module nix' = "$(cat "$UPSHELL_CONFIG_HOME"/config)" ]
+[ -e "$UPSHELL_GENERATED_HOME" ]
+[ -e "$UPSHELL_GENERATED_HOME"/.profile ]
+[ -e "$UPSHELL_GENERATED_HOME"/.bashrc ]
+[ -e "$UPSHELL_GENERATED_HOME"/.bash_profile ]
+[ 'upshell-module nix' = "$(cat "$UPSHELL_RC")" ]
 
 # Assert that we are now sourcing the 'less' module from the '.profile'.
-grep "$UPSHELL_CACHE_HOME".\*/nix -- "$UPSHELL_CACHE_HOME"/home/.profile
-grep "$UPSHELL_CACHE_HOME".\*/nix -- "$UPSHELL_CACHE_HOME"/home/.bash_profile
-grep "$UPSHELL_CACHE_HOME".\*/nix -- "$UPSHELL_CACHE_HOME"/home/.bashrc
+grep nix -- "$UPSHELL_GENERATED_HOME"/.profile
+grep nix -- "$UPSHELL_GENERATED_HOME"/.bash_profile
+grep nix -- "$UPSHELL_GENERATED_HOME"/.bashrc
+grep -v less -- "$UPSHELL_GENERATED_HOME"/.profile
 
 # Clearly indicate completion.
 echo 'Upshell tests successful!'
