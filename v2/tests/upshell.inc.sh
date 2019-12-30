@@ -5,17 +5,9 @@ set -eu
 dir="$(dirname "$0")"
 shell_type="$1"
 
-# Check formatting of the file under test.
-command -v shfmt > /dev/null &&
-   shfmt -p -i 3 -ci -sr -d "$dir"/../upshell.inc.sh
-
-# Check formatting of this file.
-command -v shfmt > /dev/null &&
-   shfmt -p -i 3 -ci -sr -d "$0"
-
 # Include the file under test.
 export UPSHELL_ERROR_FD=3
-. "$dir"/../upshell.inc.sh
+. "$2"
 
 # Unit Tests
 
