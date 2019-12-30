@@ -2,11 +2,11 @@
 set -x
 set -eu
 
-dir="$(dirname "$0")"
 shell_type="$1"
 
 # Include the file under test.
 export UPSHELL_ERROR_FD=3
+# shellcheck source=/dev/null
 . "$2"
 
 # Unit Tests
@@ -24,10 +24,10 @@ upshell_assert true
 upshell_assert "$UPSHELL_CACHE_HOME"
 upshell_assert -d .
 upshell_assert ! -f .
-! upshell_assert 3> /dev/null
-! upshell_assert '' 3> /dev/null
-! upshell_assert 0 = 1 3> /dev/null
-! upshell_assert X = Y 3> /dev/null
+upshell_assert 3> /dev/null && exit 1
+upshell_assert '' 3> /dev/null && exit 1
+upshell_assert 0 = 1 3> /dev/null && exit 1
+upshell_assert X = Y 3> /dev/null && exit 1
 [ "$(upshell_assert true = false 3>&1)" = "Assertion failed: true = false
 Failure." ]
 
@@ -150,7 +150,7 @@ done
 upshell_require sh
 upshell_require awk
 upshell_require tr
-! upshell_require exec-not-found-blah 3> /dev/null
+upshell_require exec-not-found-blah 3> /dev/null && exit 1
 [ "$(upshell_require exec-not-found-blah 3>&1)" \
    = "The 'exec-not-found-blah' executable is required, but is not on the PATH.
 Failure." ]
@@ -203,7 +203,6 @@ upshell_add_upshell_module nix
 
 # Assert that we are now sourcing the 'less' module from the '.profile'.
 grep nix -- "$UPSHELL_GENERATED_HOME"/.profile
-grep nix -- "$UPSHELL_GENERATED_HOME"/.bash_profile
 grep nix -- "$UPSHELL_GENERATED_HOME"/.bashrc
 grep -v less -- "$UPSHELL_GENERATED_HOME"/.profile
 

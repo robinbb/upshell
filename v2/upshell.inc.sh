@@ -13,17 +13,17 @@ upshell_init() {
 }
 
 upshell_err() {
-   echo "$@" >&"$UPSHELL_ERROR_FD"
+   eval "echo $1 >&${UPSHELL_ERROR_FD}"
 }
 
 upshell_fail() {
-   upshell_err "$@"
+   upshell_err "$1"
    upshell_err "Failure."
    return 1
 }
 
 upshell_assert() {
-   test "$@" || upshell_fail "Assertion failed:" "$@"
+   test "$@" || upshell_fail "Assertion failed: $*"
 }
 
 upshell_ord() {
@@ -36,10 +36,12 @@ upshell_ascii2hex() {
 
 upshell_chr() {
    [ "$1" -lt 256 ] || return 1
+   # shellcheck disable=SC2059
    printf "\\$(printf '%03o' "$1")"
 }
 
 upshell_hex2dec() {
+   upshell_require awk
    awk '
       function hex2dec(hex_chars) {
          hex_alphabet = "0123456789abcdef"
@@ -69,10 +71,12 @@ upshell_hex2ascii() {
 }
 
 upshell_split_string() {
+   upshell_require awk
    awk '{ gsub(".", "&\n") ; printf("%s", $0) }'
 }
 
 upshell_split_pairs() {
+   upshell_require awk
    awk '{ gsub("..", "&\n") ; printf("%s", $0) }'
 }
 
@@ -84,6 +88,8 @@ upshell_hex2string() {
 }
 
 upshell_string2hex() {
+   upshell_require od
+   upshell_require tr
    od -An -t xC | tr -d ' \n'
    #  upshell_split_string |
    #     while IFS= read -r char; do
@@ -93,7 +99,7 @@ upshell_string2hex() {
 
 upshell_require() {
    command -v "$1" > /dev/null ||
-      upshell_fail "The '$1' executable is required, but is not on the PATH."
+      upshell_fail "The \'$1\' executable is required, but is not on the PATH."
 }
 
 upshell_url2hex() {
@@ -107,12 +113,12 @@ upshell_hex2url() {
 upshell_list() {
    if [ -d "$UPSHELL_CACHE_HOME" ]; then
       (
-         CDPATH= cd -- "$UPSHELL_CACHE_HOME"
+         CDPATH='' cd -- "$UPSHELL_CACHE_HOME" || return 1
          upshell_zsh_setopt -o nullglob
          upshell_bash_shopt -s nullglob
          for dir in *; do
             [ -d "$dir" ] || continue
-            echo "$(upshell_hex2url "$dir")"
+            upshell_hex2url "$dir"
          done
       )
    fi
@@ -139,6 +145,7 @@ upshell_shell_type() (
    # - dash yields a return code of 127
    # - Busybox shell yields a return code of 0
 
+   # shellcheck disable=SC2039
    if type -p > /dev/null 2>&1; then
       retval="$?"
    else
@@ -157,8 +164,13 @@ upshell_shell_type() (
 
 upshell_bash_shopt() {
    case "$(upshell_shell_type)" in
-      bash) shopt "$@" ;;
-      *) ;;
+      bash)
+         # shellcheck disable=SC2039
+         shopt "$@"
+         ;;
+      *)
+         # Do nothing on non-Bash shells.
+         ;;
    esac
 }
 
@@ -173,7 +185,7 @@ upshell_delete_cache() {
    if [ "$UPSHELL_CACHE_HOME" ] &&
       [ -d "$UPSHELL_CACHE_HOME" ]; then
       (
-         CDPATH= cd -- "$UPSHELL_CACHE_HOME"
+         CDPATH='' cd -- "$UPSHELL_CACHE_HOME" || return 1
          upshell_zsh_setopt -o nullglob
          upshell_bash_shopt -s nullglob
          for dir in *; do
@@ -199,38 +211,6 @@ upshell_clone() (
    fi
 )
 
-upshell_load_helper() (
-   # Context: we are in a directory in which something must be sourced.
-   for f in *.sh; do
-      [ -f "$f" ] || continue
-      . "$f"
-   done
-   if [ -d "./bin" ]; then
-      PATH="$PWD/bin:$PATH"
-   fi
-)
-
-upshell_load() (
-   set -eu
-
-   upshell_clone "$1" || upshell_fail "Failed to load $1"
-
-   repo_dir="$UPSHELL_CACHE_HOME"/"$(upshell_url2hex "$1")"
-   CDPATH= cd -- "$repo_dir"
-   if [ "$2" ]; then
-      if [ -f "$2" ]; then
-         . "$2"
-      elif [ -d "$2" ]; then
-         CDPATH= cd -- "$2"
-         upshell_load_helper
-      else
-         upshell_fail "No file or directory named $2 in $1."
-      fi
-   else
-      upshell_load_helper
-   fi
-)
-
 upshell_phases='
    pre-login.bash
    pre-login.sh
@@ -242,13 +222,20 @@ upshell_phases='
    interactive.bash
 '
 
-upshell_generate_phases() {
+upshell_generate_phases() (
+
+   upshell_require cut
+
+   # This is to get splitting on whitespace in in `for p in ps` construct.
+   #
+   upshell_zsh_setopt shwordsplit
+
    if [ -e "$UPSHELL_RC" ]; then
       mkdir -p "$UPSHELL_GENERATED_HOME"
       for phase in $upshell_phases; do
          rm -f "$UPSHELL_GENERATED_HOME"/"$phase"
       done
-      while read cmd; do
+      while read -r cmd; do
          subcommand="$(echo "$cmd" | cut -f1 -d ' ')"
          case "$subcommand" in
             'upshell-module')
@@ -269,7 +256,7 @@ upshell_generate_phases() {
          unset subcommand
       done < "$UPSHELL_RC"
    fi
-}
+)
 
 upshell_add_upshell_module() {
    if [ -d "$UPSHELL_CONFIG_HOME"/modules/"$1" ]; then
@@ -298,8 +285,11 @@ upshell_generate_dot_profile() {
    fi
 
    if [ "$(echo "$UPSHELL_GENERATED_HOME"/*interactive*)" ]; then
-      echo >> "$rc"
-      echo 'if [ "$PS1" ]; then' >> "$rc"
+      {
+         echo
+         # shellcheck disable=SC2016
+         echo 'if [ "$PS1" ]; then'
+      } >> "$rc"
 
       src="$UPSHELL_GENERATED_HOME"/pre-interactive.sh
       if [ -e "$src" ]; then
@@ -333,7 +323,7 @@ upshell_generate_dot_profile() {
 
 upshell_generate_dot_bashrc() {
    rc="$UPSHELL_GENERATED_HOME"/.bashrc
-   echo 'This file was generated by Upshell. Do not modify!' > "$rc"
+   echo '# This file was generated by Upshell. Do not modify!' > "$rc"
 
    src="$UPSHELL_GENERATED_HOME"/pre-interactive.bash
    if [ -e "$src" ]; then
@@ -359,11 +349,14 @@ upshell_generate_dot_bashrc() {
       cat "$src" >> "$rc"
    fi
 
-   echo >> "$rc"
-   echo 'if [ -z "$UPSHELL_NO_ETC_BASHRC" ] && [ -r /etc/bashrc ]' >> "$rc"
-   echo 'then' >> "$rc"
-   echo '   . /etc/bashrc' >> "$rc"
-   echo 'fi' >> "$rc"
+   {
+      echo
+      # shellcheck disable=SC2016
+      echo 'if [ -z "$UPSHELL_NO_ETC_BASHRC" ] && [ -r /etc/bashrc ]'
+      echo 'then'
+      echo '   . /etc/bashrc'
+      echo 'fi'
+   } >> "$rc"
 
    src="$UPSHELL_GENERATED_HOME"/post-interactive.sh
    if [ -e "$src" ]; then
@@ -382,7 +375,7 @@ upshell_generate_dot_bashrc() {
 
 upshell_generate_dot_bash_profile() {
    rc="$UPSHELL_GENERATED_HOME"/.bash_profile
-   echo 'This file was generated by Upshell. Do not modify!' > "$rc"
+   echo '# This file was generated by Upshell. Do not modify!' > "$rc"
 
    src="$UPSHELL_GENERATED_HOME"/pre-login.bash
    if [ -e "$src" ]; then

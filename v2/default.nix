@@ -21,6 +21,7 @@ let
       '';
       checkPhase = ''
         ${pkgs.shfmt}/bin/shfmt -p -i 3 -ci -sr -d $src
+        ${pkgs.shellcheck}/bin/shellcheck --norc --shell sh $src
       '';
     };
 
@@ -33,16 +34,32 @@ let
   testScript =
     formattedShellScript "test-upshell" ./tests/upshell.inc.sh;
 
-  ksh = "${pkgs.ksh}/bin/ksh";
   bash = "${pkgs.bash}/bin/bash";
-  zsh = "${pkgs.zsh}/bin/zsh";
   dash = "${pkgs.dash}/bin/dash";
-  testRunner = pkgs.writeScript "upshell-test-runner" ''
-    #! /bin/sh
-    set -eux
-    . ${exitHandlerInclude}
-    ${dash} ${testScript} dash ${upshell}
-    ${ksh} ${testScript} ksh ${upshell}
-  '';
+  ksh = "${pkgs.ksh}/bin/ksh";
+  zsh = "${pkgs.zsh}/bin/zsh";
+
+  testRunner =
+    pkgs.writeScript "upshell-test-runner" ''
+      #! /bin/sh
+      set -eux
+      . ${exitHandlerInclude}
+
+      docker_sh() {
+         # Choose a small docker image with 'git' and a simple POSIX shell.
+         docker run --rm \
+            -v "${testScript}":/upshell-test \
+            -v "${upshell}":/upshell \
+            alpine \
+            sh -c 'apk add git > /dev/null 2>&1 &&
+                   sh /upshell-test sh /upshell'
+      }
+
+      docker_sh
+      ${bash} ${testScript} bash ${upshell}
+      ${dash} ${testScript} dash ${upshell}
+      ${ksh} ${testScript} ksh ${upshell}
+      ${zsh} ${testScript} zsh ${upshell}
+    '';
 in
   testRunner
