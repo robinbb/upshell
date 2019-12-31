@@ -1,21 +1,8 @@
-#!/bin/sh
+#! /bin/sh
 
-set -eu
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-docker_sh() {
-   # Choose a small docker image with 'git' and a simple POSIX shell.
-   docker run --rm \
-      -v "$PWD":/upshell \
-      alpine \
-      sh -c 'apk add git > /dev/null 2>&1 && sh /upshell/'"$(printf %q "$1")"' sh'
-}
-
-for t in tests/*; do
-   [ -e "$t" ] || break
-   [ -x "$t" ] || continue
-   ksh "$t" ksh
-   bash "$t" bash
-   zsh "$t" zsh
-   dash "$t" dash
-   docker_sh "$t"
-done
+testRunner="$(nix-build --no-out-link -A testRunner)"
+$testRunner

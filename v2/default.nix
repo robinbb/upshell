@@ -45,21 +45,19 @@ let
       set -eux
       . ${exitHandlerInclude}
 
-      docker_sh() {
-         # Choose a small docker image with 'git' and a simple POSIX shell.
-         docker run --rm \
-            -v "${testScript}":/upshell-test \
-            -v "${upshell}":/upshell \
-            alpine \
-            sh -c 'apk add git > /dev/null 2>&1 &&
-                   sh /upshell-test sh /upshell'
-      }
-
-      docker_sh
+      # Test with Bash first, as it is most familiar and sane.
       ${bash} ${testScript} bash ${upshell}
+
+      # Choose a small docker image with 'git' and a simple POSIX shell.
+      docker run --rm \
+         -v "${testScript}":/upshell-test \
+         -v "${upshell}":/upshell \
+         alpine \
+         sh -c 'apk add git > /dev/null 2>&1 &&
+                sh /upshell-test sh /upshell'
       ${dash} ${testScript} dash ${upshell}
       ${ksh} ${testScript} ksh ${upshell}
       ${zsh} ${testScript} zsh ${upshell}
     '';
 in
-  testRunner
+  { inherit upshell testScript testRunner; }

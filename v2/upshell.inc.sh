@@ -13,7 +13,7 @@ upshell_init() {
 }
 
 upshell_err() {
-   eval "echo $1 >&${UPSHELL_ERROR_FD}"
+   eval "echo \"$1\" >&${UPSHELL_ERROR_FD}"
 }
 
 upshell_fail() {
@@ -99,7 +99,7 @@ upshell_string2hex() {
 
 upshell_require() {
    command -v "$1" > /dev/null ||
-      upshell_fail "The \'$1\' executable is required, but is not on the PATH."
+      upshell_fail "The '$1' executable is required, but is not on the PATH."
 }
 
 upshell_url2hex() {
@@ -198,17 +198,19 @@ upshell_delete_cache() {
 }
 
 upshell_clone() (
-   repo_dir="$UPSHELL_CACHE_HOME"/"$(upshell_url2hex "$1")"
+   repo_url="$1"
+   repo_dir="$UPSHELL_CACHE_HOME"/"$(upshell_url2hex "$repo_url")"
    if [ ! -e "$repo_dir" ]; then
       upshell_require git
       git clone \
          --depth 1 \
          --recursive \
          -b master \
-         "$1" \
+         "$repo_url" \
          "$repo_dir" ||
          upshell_fail "git clone failed"
    fi
+   echo "$repo_dir"
 )
 
 upshell_phases='
@@ -222,16 +224,27 @@ upshell_phases='
    interactive.bash
 '
 
+upshell_ensure_dir() {
+   mkdir -p "$1"
+}
+
+upshell_ensure_file() {
+   if [ ! -e "$1" ]; then
+      upshell_ensure_dir "$(dirname "$1")"
+      touch "$1"
+   fi
+}
+
 upshell_generate_phases() (
 
    upshell_require cut
 
-   # This is to get splitting on whitespace in in `for p in ps` construct.
+   # This is to get splitting on whitespace in the `for p in ps` construct.
    #
    upshell_zsh_setopt shwordsplit
 
    if [ -e "$UPSHELL_RC" ]; then
-      mkdir -p "$UPSHELL_GENERATED_HOME"
+      upshell_ensure_dir "$UPSHELL_GENERATED_HOME"
       for phase in $upshell_phases; do
          rm -f "$UPSHELL_GENERATED_HOME"/"$phase"
       done
@@ -239,7 +252,8 @@ upshell_generate_phases() (
          subcommand="$(echo "$cmd" | cut -f1 -d ' ')"
          case "$subcommand" in
             'upshell-module')
-               dir="$UPSHELL_CONFIG_HOME"/modules/"$(echo "$cmd" | cut -f2 -d ' ')"
+               repo_dir="$(upshell_clone "$(upshell_home_repo)")"
+               dir="$repo_dir"/modules/"$(echo "$cmd" | cut -f2 -d ' ')"
                if [ -e "$dir" ]; then
                   for phase in $upshell_phases; do
                      if [ -e "$dir"/"$phase" ]; then
@@ -258,15 +272,22 @@ upshell_generate_phases() (
    fi
 )
 
-upshell_add_upshell_module() {
-   if [ -d "$UPSHELL_CONFIG_HOME"/modules/"$1" ]; then
+upshell_home_repo() {
+   echo 'https://github.com/robinbb/upshell'
+}
+
+upshell_add_upshell_module() (
+   module="$1"
+   repo_dir="$(upshell_clone "$(upshell_home_repo)")"
+   if [ -d "$repo_dir"/modules/"$module" ]; then
+      upshell_ensure_file "$UPSHELL_RC"
       echo "upshell-module $1" >> "$UPSHELL_RC"
       upshell_generate_phases
       upshell_generate_rc_files
    else
-      upshell_fail "The module $1 does not exist."
+      upshell_fail "The module '$module' does not exist."
    fi
-}
+)
 
 upshell_generate_dot_profile() {
    rc="$UPSHELL_GENERATED_HOME"/.profile
