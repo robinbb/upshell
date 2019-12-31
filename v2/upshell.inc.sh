@@ -199,13 +199,18 @@ upshell_delete_cache() {
 
 upshell_clone() (
    repo_url="$1"
+   if [ "$#" -gt 1 ]; then
+      ref="$2"
+   else
+      ref='master'
+   fi
    repo_dir="$UPSHELL_CACHE_HOME"/"$(upshell_url2hex "$repo_url")"
    if [ ! -e "$repo_dir" ]; then
       upshell_require git
       git clone \
          --depth 1 \
          --recursive \
-         -b master \
+         -b "$ref" \
          "$repo_url" \
          "$repo_dir" ||
          upshell_fail "git clone failed"
@@ -237,8 +242,6 @@ upshell_ensure_file() {
 
 upshell_generate_phases() (
 
-   upshell_require cut
-
    # This is to get splitting on whitespace in the `for p in ps` construct.
    #
    upshell_zsh_setopt shwordsplit
@@ -249,11 +252,24 @@ upshell_generate_phases() (
          rm -f "$UPSHELL_GENERATED_HOME"/"$phase"
       done
       while read -r cmd; do
+         upshell_require cut
          subcommand="$(echo "$cmd" | cut -f1 -d ' ')"
          case "$subcommand" in
             'upshell-module')
-               repo_dir="$(upshell_clone "$(upshell_home_repo)")"
-               dir="$repo_dir"/modules/"$(echo "$cmd" | cut -f2 -d ' ')"
+               module="$(echo "$cmd" | cut -f2 -d ' ')"
+               if [ ! "$module" ]; then
+                  upshell_fail "No module specified on 'upshell-module'."
+               fi
+               repo="$(echo "$cmd" | cut -f3 -d ' ')"
+               if [ ! "$repo" ]; then
+                  repo="$(upshell_home_repo)"
+               fi
+
+               # TODO: assert that we are on the correct ref.
+               # ref="$(echo "$cmd" cut -f4 -d ' ')"
+
+               repo_dir="$(upshell_clone "$repo")"
+               dir="$repo_dir"/modules/"$module"
                if [ -e "$dir" ]; then
                   for phase in $upshell_phases; do
                      if [ -e "$dir"/"$phase" ]; then
@@ -261,13 +277,11 @@ upshell_generate_phases() (
                      fi
                   done
                fi
-               unset dir
                ;;
             *)
                upshell_fail "Unhandled subcommand: $subcommand"
                ;;
          esac
-         unset subcommand
       done < "$UPSHELL_RC"
    fi
 )
@@ -278,10 +292,18 @@ upshell_home_repo() {
 
 upshell_add_upshell_module() (
    module="$1"
+   repo=''
+   ref=''
+   if [ "$#" -gt 1 ]; then
+      repo=" $2"
+      if [ "$#" -gt 2 ]; then
+         ref=" $3"
+      fi
+   fi
    repo_dir="$(upshell_clone "$(upshell_home_repo)")"
    if [ -d "$repo_dir"/modules/"$module" ]; then
       upshell_ensure_file "$UPSHELL_RC"
-      echo "upshell-module $1" >> "$UPSHELL_RC"
+      echo "upshell-module $module$repo$ref" >> "$UPSHELL_RC"
       upshell_generate_phases
       upshell_generate_rc_files
    else

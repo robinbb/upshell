@@ -206,5 +206,29 @@ grep nix -- "$UPSHELL_GENERATED_HOME"/.profile
 grep nix -- "$UPSHELL_GENERATED_HOME"/.bashrc
 grep -v less -- "$UPSHELL_GENERATED_HOME"/.profile
 
+rm -fr "$UPSHELL_CACHE_HOME"
+rm -f "$UPSHELL_RC"
+[ ! -e "$UPSHELL_GENERATED_HOME" ]
+upshell_add_upshell_module nix https://github.com/robinbb/upshell
+[ -e "$UPSHELL_GENERATED_HOME" ]
+[ -e "$UPSHELL_GENERATED_HOME"/.profile ]
+[ -e "$UPSHELL_GENERATED_HOME"/.bashrc ]
+[ -e "$UPSHELL_GENERATED_HOME"/.bash_profile ]
+[ 'upshell-module nix https://github.com/robinbb/upshell' = "$(cat "$UPSHELL_RC")" ]
+
+rm -fr "$UPSHELL_CACHE_HOME"
+rm -f "$UPSHELL_RC"
+[ ! -e "$UPSHELL_GENERATED_HOME" ]
+upshell_add_upshell_module \
+   nix \
+   https://github.com/robinbb/upshell \
+   c8640701c880111568233ee6efd1552d8a31c452
+[ -e "$UPSHELL_GENERATED_HOME" ]
+[ -e "$UPSHELL_GENERATED_HOME"/.profile ]
+[ -e "$UPSHELL_GENERATED_HOME"/.bashrc ]
+[ -e "$UPSHELL_GENERATED_HOME"/.bash_profile ]
+[ 'upshell-module nix https://github.com/robinbb/upshell c8640701c880111568233ee6efd1552d8a31c452' \
+   = "$(cat "$UPSHELL_RC")" ]
+
 # Clearly indicate completion.
 echo 'Upshell tests successful!'
