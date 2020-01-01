@@ -199,21 +199,17 @@ upshell_delete_cache() {
 
 upshell_clone() (
    repo_url="$1"
+   ref='master'
    if [ "$#" -gt 1 ]; then
-      ref="$2"
-   else
-      ref='master'
+      if [ "$2" ]; then
+         ref="$2"
+      fi
    fi
-   repo_dir="$UPSHELL_CACHE_HOME"/"$(upshell_url2hex "$repo_url")"
+   upshell_url="$repo_url"@"$ref"
+   repo_dir="$UPSHELL_CACHE_HOME"/"$(upshell_url2hex "$upshell_url")"
    if [ ! -e "$repo_dir" ]; then
       upshell_require git
-      git clone \
-         --depth 1 \
-         --recursive \
-         -b "$ref" \
-         "$repo_url" \
-         "$repo_dir" ||
-         upshell_fail "git clone failed"
+      git clone -q --depth 1 -b "$ref" "$repo_url" "$repo_dir"
    fi
    echo "$repo_dir"
 )
@@ -265,15 +261,21 @@ upshell_generate_phases() (
                   repo="$(upshell_home_repo)"
                fi
 
-               # TODO: assert that we are on the correct ref.
-               # ref="$(echo "$cmd" cut -f4 -d ' ')"
-
-               repo_dir="$(upshell_clone "$repo")"
+               ref="$(echo "$cmd" | cut -f4 -d ' ')"
+               repo_dir="$(upshell_clone "$repo" "$ref")"
                dir="$repo_dir"/modules/"$module"
                if [ -e "$dir" ]; then
+                  upshell_require cat
                   for phase in $upshell_phases; do
                      if [ -e "$dir"/"$phase" ]; then
-                        cat "$dir"/"$phase" >> "$UPSHELL_GENERATED_HOME"/"$phase"
+                        {
+                           echo
+                           echo "# ${repo}/modules/${module}:"
+                           echo
+                           # Delete the comment-only lines, if any.
+                           # sed '/^#.*/d' "$dir"/"$phase"
+                           cat "$dir"/"$phase"
+                        } >> "$UPSHELL_GENERATED_HOME"/"$phase"
                      fi
                   done
                fi
@@ -292,18 +294,18 @@ upshell_home_repo() {
 
 upshell_add_upshell_module() (
    module="$1"
-   repo=''
-   ref=''
+   repo="$(upshell_home_repo)"
+   ref='master'
    if [ "$#" -gt 1 ]; then
-      repo=" $2"
+      repo="$2"
       if [ "$#" -gt 2 ]; then
-         ref=" $3"
+         ref="$3"
       fi
    fi
-   repo_dir="$(upshell_clone "$(upshell_home_repo)")"
+   repo_dir="$(upshell_clone "$(upshell_home_repo)" "$ref")"
    if [ -d "$repo_dir"/modules/"$module" ]; then
       upshell_ensure_file "$UPSHELL_RC"
-      echo "upshell-module $module$repo$ref" >> "$UPSHELL_RC"
+      echo "upshell-module $module $repo $ref" >> "$UPSHELL_RC"
       upshell_generate_phases
       upshell_generate_rc_files
    else
@@ -336,30 +338,40 @@ upshell_generate_dot_profile() {
 
       src="$UPSHELL_GENERATED_HOME"/pre-interactive.sh
       if [ -e "$src" ]; then
-         echo >> "$rc"
-         cat "$src" >> "$rc"
+         {
+            echo
+            cat "$src"
+         } >> "$rc"
       fi
 
       src="$UPSHELL_GENERATED_HOME"/interactive.sh
       if [ -e "$src" ]; then
-         echo >> "$rc"
-         cat "$src" >> "$rc"
+         {
+            echo
+            cat "$src"
+         } >> "$rc"
       fi
 
       src="$UPSHELL_GENERATED_HOME"/post-interactive.sh
       if [ -e "$src" ]; then
-         echo >> "$rc"
-         cat "$src" >> "$rc"
+         {
+            echo
+            cat "$src"
+         } >> "$rc"
       fi
 
-      echo >> "$rc"
-      echo 'fi' >> "$rc"
+      {
+         echo
+         echo 'fi'
+      } >> "$rc"
    fi
 
    src="$UPSHELL_GENERATED_HOME"/post-login.sh
    if [ -e "$src" ]; then
-      echo >> "$rc"
-      cat "$src" >> "$rc"
+      {
+         echo
+         cat "$src"
+      } >> "$rc"
    fi
    unset rc src
 }

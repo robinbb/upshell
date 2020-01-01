@@ -159,9 +159,9 @@ Failure." ]
 upshell_delete_cache
 [ "$(upshell_list)" = '' ]
 upshell_clone https://github.com/robinbb/upshell
-hexdir="$(upshell_url2hex https://github.com/robinbb/upshell)"
+hexdir="$(upshell_url2hex 'https://github.com/robinbb/upshell@master')"
 [ -e "$UPSHELL_CACHE_HOME"/"$hexdir" ]
-[ "$(upshell_list)" = 'https://github.com/robinbb/upshell' ]
+[ "$(upshell_list)" = 'https://github.com/robinbb/upshell@master' ]
 upshell_delete_cache
 [ "$(upshell_list)" = '' ]
 
@@ -185,7 +185,8 @@ upshell_generate_phases
 upshell_add_upshell_module less
 [ -e "$UPSHELL_RC" ]
 [ -e "$UPSHELL_GENERATED_HOME" ]
-[ 'upshell-module less' = "$(cat "$UPSHELL_RC")" ]
+[ 'upshell-module less https://github.com/robinbb/upshell master' \
+   = "$(cat "$UPSHELL_RC")" ]
 [ -e "$UPSHELL_GENERATED_HOME"/.profile ]
 
 # Assert that we are now sourcing the 'less' module from the '.profile'.
@@ -199,9 +200,10 @@ upshell_add_upshell_module nix
 [ -e "$UPSHELL_GENERATED_HOME"/.profile ]
 [ -e "$UPSHELL_GENERATED_HOME"/.bashrc ]
 [ -e "$UPSHELL_GENERATED_HOME"/.bash_profile ]
-[ 'upshell-module nix' = "$(cat "$UPSHELL_RC")" ]
+[ 'upshell-module nix https://github.com/robinbb/upshell master' \
+   = "$(cat "$UPSHELL_RC")" ]
 
-# Assert that we are now sourcing the 'less' module from the '.profile'.
+# Assert that we are now sourcing the 'nix' module from the '.profile'.
 grep nix -- "$UPSHELL_GENERATED_HOME"/.profile
 grep nix -- "$UPSHELL_GENERATED_HOME"/.bashrc
 grep -v less -- "$UPSHELL_GENERATED_HOME"/.profile
@@ -214,7 +216,8 @@ upshell_add_upshell_module nix https://github.com/robinbb/upshell
 [ -e "$UPSHELL_GENERATED_HOME"/.profile ]
 [ -e "$UPSHELL_GENERATED_HOME"/.bashrc ]
 [ -e "$UPSHELL_GENERATED_HOME"/.bash_profile ]
-[ 'upshell-module nix https://github.com/robinbb/upshell' = "$(cat "$UPSHELL_RC")" ]
+[ 'upshell-module nix https://github.com/robinbb/upshell master' \
+   = "$(cat "$UPSHELL_RC")" ]
 
 rm -fr "$UPSHELL_CACHE_HOME"
 rm -f "$UPSHELL_RC"
@@ -222,13 +225,62 @@ rm -f "$UPSHELL_RC"
 upshell_add_upshell_module \
    nix \
    https://github.com/robinbb/upshell \
-   c8640701c880111568233ee6efd1552d8a31c452
+   robinbb-v2
 [ -e "$UPSHELL_GENERATED_HOME" ]
 [ -e "$UPSHELL_GENERATED_HOME"/.profile ]
 [ -e "$UPSHELL_GENERATED_HOME"/.bashrc ]
 [ -e "$UPSHELL_GENERATED_HOME"/.bash_profile ]
-[ 'upshell-module nix https://github.com/robinbb/upshell c8640701c880111568233ee6efd1552d8a31c452' \
+[ 'upshell-module nix https://github.com/robinbb/upshell robinbb-v2' \
    = "$(cat "$UPSHELL_RC")" ]
+
+rm -fr "$UPSHELL_CACHE_HOME"
+rm -f "$UPSHELL_RC"
+[ ! -e "$UPSHELL_GENERATED_HOME" ]
+upshell_add_upshell_module \
+   nix \
+   https://github.com/robinbb/upshell \
+   robinbb-v2
+upshell_add_upshell_module \
+   less \
+   https://github.com/robinbb/upshell \
+   robinbb-v2
+upshell_add_upshell_module \
+   default \
+   https://github.com/robinbb/upshell \
+   robinbb-v2
+[ -e "$UPSHELL_GENERATED_HOME" ]
+[ -e "$UPSHELL_GENERATED_HOME"/.profile ]
+[ -e "$UPSHELL_GENERATED_HOME"/.bashrc ]
+[ -e "$UPSHELL_GENERATED_HOME"/.bash_profile ]
+[ 'upshell-module nix https://github.com/robinbb/upshell robinbb-v2
+upshell-module less https://github.com/robinbb/upshell robinbb-v2
+upshell-module default https://github.com/robinbb/upshell robinbb-v2' \
+   = "$(cat "$UPSHELL_RC")" ]
+grep nix -- "$UPSHELL_GENERATED_HOME"/.profile
+grep default -- "$UPSHELL_GENERATED_HOME"/.profile
+grep nix -- "$UPSHELL_GENERATED_HOME"/.bashrc
+grep less -- "$UPSHELL_GENERATED_HOME"/.bashrc
+grep default -- "$UPSHELL_GENERATED_HOME"/.bashrc
+
+rm -fr "$UPSHELL_CACHE_HOME"
+rm -f "$UPSHELL_RC"
+[ ! -e "$UPSHELL_GENERATED_HOME" ]
+upshell_add_upshell_module echo
+upshell_add_upshell_module default
+upshell_add_upshell_module nix
+upshell_add_upshell_module less
+upshell_add_upshell_module tmux
+upshell_add_upshell_module vim
+upshell_add_upshell_module grep
+[ -e "$UPSHELL_GENERATED_HOME" ]
+[ -e "$UPSHELL_GENERATED_HOME"/.profile ]
+[ -e "$UPSHELL_GENERATED_HOME"/.bashrc ]
+[ -e "$UPSHELL_GENERATED_HOME"/.bash_profile ]
+grep nix -- "$UPSHELL_GENERATED_HOME"/.profile
+grep default -- "$UPSHELL_GENERATED_HOME"/.profile
+grep nix -- "$UPSHELL_GENERATED_HOME"/.bashrc
+grep less -- "$UPSHELL_GENERATED_HOME"/.bashrc
+grep default -- "$UPSHELL_GENERATED_HOME"/.bashrc
 
 # Clearly indicate completion.
 echo 'Upshell tests successful!'
