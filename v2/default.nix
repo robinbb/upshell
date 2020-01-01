@@ -13,15 +13,11 @@ let
     pkgs.stdenv.mkDerivation {
       inherit name;
       src = shellSource;
-      doCheck = true;
-      phases = [ "installPhase" "checkPhase" ];
+      phases = [ "installPhase" ];
       installPhase = ''
-        # Delete the comment-only lines, and pairs of empty lines.
-        cat -s <(sed '/^#.*/d' < $src) > $out
-      '';
-      checkPhase = ''
         ${pkgs.shfmt}/bin/shfmt -p -i 3 -ci -sr -d $src
         ${pkgs.shellcheck}/bin/shellcheck --norc --shell sh $src
+        cp $src $out
       '';
     };
 

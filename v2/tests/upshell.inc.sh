@@ -265,13 +265,34 @@ grep default -- "$UPSHELL_GENERATED_HOME"/.bashrc
 rm -fr "$UPSHELL_CACHE_HOME"
 rm -f "$UPSHELL_RC"
 [ ! -e "$UPSHELL_GENERATED_HOME" ]
-upshell_add_upshell_module echo
-upshell_add_upshell_module default
-upshell_add_upshell_module nix
-upshell_add_upshell_module less
-upshell_add_upshell_module tmux
-upshell_add_upshell_module vim
-upshell_add_upshell_module grep
+upshell_add_upshell_module \
+   echo \
+   https://github.com/robinbb/upshell \
+   robinbb-v2
+upshell_add_upshell_module \
+   default \
+   https://github.com/robinbb/upshell \
+   robinbb-v2
+upshell_add_upshell_module \
+   grep \
+   https://github.com/robinbb/upshell \
+   robinbb-v2
+upshell_add_upshell_module \
+   nix \
+   https://github.com/robinbb/upshell \
+   robinbb-v2
+upshell_add_upshell_module \
+   less \
+   https://github.com/robinbb/upshell \
+   robinbb-v2
+upshell_add_upshell_module \
+   tmux \
+   https://github.com/robinbb/upshell \
+   robinbb-v2
+upshell_add_upshell_module \
+   vim \
+   https://github.com/robinbb/upshell \
+   robinbb-v2
 [ -e "$UPSHELL_GENERATED_HOME" ]
 [ -e "$UPSHELL_GENERATED_HOME"/.profile ]
 [ -e "$UPSHELL_GENERATED_HOME"/.bashrc ]

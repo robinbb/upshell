@@ -272,8 +272,6 @@ upshell_generate_phases() (
                            echo
                            echo "# ${repo}/modules/${module}:"
                            echo
-                           # Delete the comment-only lines, if any.
-                           # sed '/^#.*/d' "$dir"/"$phase"
                            cat "$dir"/"$phase"
                         } >> "$UPSHELL_GENERATED_HOME"/"$phase"
                      fi
