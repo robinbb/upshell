@@ -1,1 +1,1 @@
-echo pre-login.bash
+echo pre-login.bash >&2

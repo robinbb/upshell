@@ -1,1 +1,1 @@
-echo post-login.bash
+echo post-login.bash >&2

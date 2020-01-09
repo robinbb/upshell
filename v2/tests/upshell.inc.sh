@@ -303,5 +303,28 @@ grep nix -- "$UPSHELL_GENERATED_HOME"/.bashrc
 grep less -- "$UPSHELL_GENERATED_HOME"/.bashrc
 grep default -- "$UPSHELL_GENERATED_HOME"/.bashrc
 
+rm -fr "$UPSHELL_CACHE_HOME"
+rm -f "$UPSHELL_RC"
+[ ! -e "$UPSHELL_GENERATED_HOME" ]
+upshell_add_upshell_module \
+   echo \
+   https://github.com/robinbb/upshell \
+   robinbb-v2
+upshell_add_upshell_module \
+   default \
+   https://github.com/robinbb/upshell \
+   robinbb-v2
+upshell_add_upshell_module \
+   nix \
+   https://github.com/robinbb/upshell \
+   robinbb-v2
+[ -e "$UPSHELL_GENERATED_HOME" ]
+[ -e "$UPSHELL_GENERATED_HOME"/.profile ]
+[ -e "$UPSHELL_GENERATED_HOME"/.bashrc ]
+[ -e "$UPSHELL_GENERATED_HOME"/.bash_profile ]
+grep echo -- "$UPSHELL_GENERATED_HOME"/.bash_profile
+grep echo -- "$UPSHELL_GENERATED_HOME"/.profile
+grep echo -- "$UPSHELL_GENERATED_HOME"/.bashrc
+
 # Clearly indicate completion.
 echo 'Upshell tests successful!'

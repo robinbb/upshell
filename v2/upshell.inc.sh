@@ -340,6 +340,15 @@ upshell_generate_dot_profile() {
          echo 'if [ "$PS1" ]; then'
       } >> "$rc"
 
+      {
+         echo
+         # shellcheck disable=SC2016
+         echo '   if [ "$BASH" ]; then'
+         # shellcheck disable=SC2016
+         echo '      [ -r ~/.bashrc ] && . ~/.bashrc'
+         echo '   fi'
+      } >> "$rc"
+
       src="$UPSHELL_GENERATED_HOME"/pre-interactive.sh
       if [ -e "$src" ]; then
          {
@@ -469,6 +478,39 @@ upshell_generate_dot_bash_profile() {
       cat "$src" >> "$rc"
    fi
 
+   {
+      echo
+      # shellcheck disable=SC2016
+      echo '[ "$PS1" ] || exit'
+   } >> "$rc"
+
+   src="$UPSHELL_GENERATED_HOME"/pre-interactive.bash
+   if [ -e "$src" ]; then
+      echo >> "$rc"
+      cat "$src" >> "$rc"
+   fi
+
+   src="$UPSHELL_GENERATED_HOME"/interactive.bash
+   if [ -e "$src" ]; then
+      echo >> "$rc"
+      cat "$src" >> "$rc"
+   fi
+
+   {
+      echo
+      # shellcheck disable=SC2016
+      echo 'if [ -z "$UPSHELL_NO_ETC_BASHRC" ] && [ -r /etc/bashrc ]'
+      echo 'then'
+      echo '   . /etc/bashrc'
+      echo 'fi'
+   } >> "$rc"
+
+   src="$UPSHELL_GENERATED_HOME"/post-interactive.bash
+   if [ -e "$src" ]; then
+      echo >> "$rc"
+      cat "$src" >> "$rc"
+   fi
+
    unset rc src
 }
 
@@ -516,17 +558,56 @@ upshell_generate_rc_files() {
    upshell_generate_dot_bash_logout
 }
 
+upshell_link() (
+   if [ "$#" -eq 0 ]; then
+      upshell_fail "You must supply a file name to link."
+   fi
+
+   rc_file="$1"
+
+   if [ ! "$HOME" ] || [ ! -d "$HOME" ]; then
+      upshell_fail "You must set the HOME environment variable."
+   fi
+
+   source="$HOME"/"$rc_file"
+   target="$UPSHELL_GENERATED_HOME"/"$rc_file"
+
+   if [ ! -e "$target" ]; then
+      upshell_fail "There is no $target"
+   fi
+
+   if [ -e "$source" ] && [ ! -L "$source" ]; then
+      upshell_fail "Back up and delete $source before linking."
+   fi
+
+   CDPATH='' cd -- "$HOME" ||
+      upshell_fail "Could not change directory to $HOME."
+
+   ln -sf "$target" "$rc_file"
+)
+
+upshell_usage() {
+   echo "TODO: Upshell usage message."
+}
+
 upshell() {
    case "$1" in
+      'link')
+         shift
+         upshell_link "$@"
+         ;;
       'list')
          shift
          upshell_list "$@"
          ;;
-      *)
+      'clone')
+         shift
          upshell_clone "$@"
+         ;;
+      *)
+         upshell_usage "$@"
          ;;
    esac
 }
 
 upshell_init
-# upshell "$@"

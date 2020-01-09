@@ -1,1 +1,1 @@
-echo pre-interactive.bash
+echo pre-interactive.bash >&2

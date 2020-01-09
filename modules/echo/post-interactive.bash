@@ -1,1 +1,1 @@
-echo post-interactive.bash
+echo post-interactive.bash >&2

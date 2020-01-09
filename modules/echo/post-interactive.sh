@@ -1,1 +1,1 @@
-echo post-interactive.sh
+echo post-interactive.sh >&2

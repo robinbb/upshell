@@ -1,1 +1,1 @@
-echo login.bash
+echo login.bash >&2

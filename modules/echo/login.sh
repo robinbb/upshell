@@ -1,1 +1,1 @@
-echo login.sh
+echo login.sh >&2

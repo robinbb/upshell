@@ -1,1 +1,1 @@
-echo interactive.bash
+echo interactive.bash >&2
